@@ -32,7 +32,7 @@ struct ContentView: View {
                     }
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
-                    Text(winText(player1: player1Life, player2: player2Life))
+                Text(winText(player1: player1Life, player2: player2Life))
                     .font(.headline)
                     .padding(.vertical, 20)
                     .padding(.bottom, 40)
