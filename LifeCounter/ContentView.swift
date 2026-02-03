@@ -29,6 +29,14 @@ struct ContentView: View {
             let isLandscape = geometry.size.width > geometry.size.height
             
             VStack(spacing: 16) {
+                HStack {
+                    Button("Add player") {
+                        let newPlayerCount = players.count + 1
+                        players.append(Player(name: "Player \(newPlayerCount)", life: 20))
+                    }
+                    .disabled(startGame || players.count >= 8)
+                }
+                
                 Group {
                     if (isLandscape) {
                         // horizontal --> side by side player view
