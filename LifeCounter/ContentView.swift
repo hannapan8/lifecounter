@@ -24,79 +24,92 @@ struct ContentView: View {
     ]
     @State private var startGame = false
     @State private var lifeText = "5"
+    @State private var history: [String] = []
     
     var body: some View {
-        GeometryReader { geometry in
-            let isLandscape = geometry.size.width > geometry.size.height
-            let numRow = isLandscape ? 4 : 2
-            
-            VStack(spacing: 16) {
-                HStack {
-                    Button("Add Player") {
-                        let newPlayerCount = players.count + 1
-                        players.append(Player(name: "Player \(newPlayerCount)", life: 20))
+        NavigationStack {
+            GeometryReader { geometry in
+                let isLandscape = geometry.size.width > geometry.size.height
+                let numRow = isLandscape ? 4 : 2
+                
+                VStack(spacing: 16) {
+                    HStack {
+                        Button("Add Player") {
+                            let newPlayerCount = players.count + 1
+                            players.append(Player(name: "Player \(newPlayerCount)", life: 20))
+                        }
+                        .disabled(startGame || players.count >= 8)
+                        
+                        Button("Remove Player") {
+                            players.removeLast()
+                        }
+                        .disabled(startGame || players.count <= 2)
+                        
+                        NavigationLink("History") {
+                            ViewHistory(history: history)
+                        }
                     }
-                    .disabled(startGame || players.count >= 8)
-                }
-                .buttonStyle(.borderedProminent)
-                
-                HStack (spacing: 12) {
-                    Text("Change life by:")
-                        .font(.headline)
+                    .buttonStyle(.borderedProminent)
                     
-                    TextField("Amount", text: $lifeText)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(width: 90)
+                    HStack (spacing: 12) {
+                        Text("Change life by:")
+                            .font(.headline)
+                        
+                        TextField("Amount", text: $lifeText)
+                            .keyboardType(.numberPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 90)
+                        
+
+                    }
+                    .padding(.horizontal, 4)
                     
-
-                }
-                .padding(.horizontal, 4)
-                
-                ScrollView {
-                    VStack(spacing: 14) {
-                        ForEach(0..<players.count, id: \.self) { i in
-                            if (i % numRow == 0) {
-                                HStack(spacing: 0) {
-                                    playerViewPanel(name: players[i].name, life: $players[i].life)
-                                        .frame(maxWidth: 300)
-
-                                    if (i + 1 < players.count && numRow >= 2) {
-                                        playerViewPanel(name: players[i + 1].name, life: $players[i + 1].life)
+                    ScrollView {
+                        VStack(spacing: 14) {
+                            ForEach(0..<players.count, id: \.self) { i in
+                                if (i % numRow == 0) {
+                                    HStack(spacing: 0) {
+                                        playerViewPanel(name: players[i].name, life: $players[i].life)
                                             .frame(maxWidth: 300)
-                                    }
 
-                                    // horizontal view
-                                    if (numRow == 4){
-                                        if (i + 2 < players.count) {
-                                            playerViewPanel(name: players[i + 2].name, life: $players[i + 2].life)
+                                        if (i + 1 < players.count && numRow >= 2) {
+                                            playerViewPanel(name: players[i + 1].name, life: $players[i + 1].life)
                                                 .frame(maxWidth: 300)
                                         }
-                                        
-                                        if (i + 3 < players.count) {
-                                            playerViewPanel(name: players[i + 3].name, life: $players[i + 3].life)
-                                                .frame(maxWidth: 300)
+
+                                        // horizontal view
+                                        if (numRow == 4){
+                                            if (i + 2 < players.count) {
+                                                playerViewPanel(name: players[i + 2].name, life: $players[i + 2].life)
+                                                    .frame(maxWidth: 300)
+                                            }
+                                            
+                                            if (i + 3 < players.count) {
+                                                playerViewPanel(name: players[i + 3].name, life: $players[i + 3].life)
+                                                    .frame(maxWidth: 300)
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                        .padding(.vertical, 6)
                     }
-                    .padding(.vertical, 6)
+                    .padding(20)
+                    .layoutPriority(1)
+                    .background(Color(.systemBackground))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    Text(winText())
+                        .font(.headline)
+                        .foregroundStyle(Color(.red))
+
+                    
                 }
-                .padding(20)
-                .layoutPriority(1)
-                .background(Color(.systemBackground))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                Text(winText())
-                    .font(.headline)
-                    .foregroundStyle(Color(.red))
-
-                
+                .padding(12)
             }
-            .padding(12)
         }
+        
     }
     
     func playerViewPanel(name: String, life: Binding<Int>) -> some View {
@@ -114,10 +127,12 @@ struct ContentView: View {
                     Button("+") {
                         life.wrappedValue += 1
                         startGame = true
+                        history.append("\(name) gained 1 life.")
                     }
                     Button("-") {
                         life.wrappedValue -= 1
                         startGame = true
+                        history.append("\(name) lost 1 life.")
                     }
                 }
                 HStack(spacing: 12) {
@@ -126,6 +141,7 @@ struct ContentView: View {
                         if (amount > 0) {
                             life.wrappedValue += amount
                             startGame = true
+                            history.append("\(name) gained \(amount) life.")
                         }
                     }
                     Button("-\(lifeChangeValue())") {
@@ -133,6 +149,7 @@ struct ContentView: View {
                         if (amount > 0) {
                             life.wrappedValue -= amount
                             startGame = true
+                            history.append("\(name) lost \(amount) life.")
                         }
                     }
                 }
@@ -160,8 +177,7 @@ struct ContentView: View {
     
     func lifeChangeValue() -> Int {
         let num = Int(lifeText) ?? 0
-        // limit the number ppl can enter
-        return max(0, min(999, num))
+        return num
     }
     
 }
