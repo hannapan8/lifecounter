@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var startGame = false
     @State private var lifeText = "5"
     @State private var history: [String] = []
+    @State private var isGameOver: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -45,8 +46,16 @@ struct ContentView: View {
                         }
                         .disabled(startGame || players.count <= 2)
                         
+                    }
+                    .buttonStyle(.borderedProminent)
+                    
+                    HStack {
                         NavigationLink("History") {
                             ViewHistory(history: history)
+                        }
+                        
+                        Button("Reset") {
+                            resetGame()
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -107,6 +116,11 @@ struct ContentView: View {
                     
                 }
                 .padding(12)
+                .alert("Game Over!", isPresented: $isGameOver) {
+                    Button ("OK") {
+                        resetGame()
+                    }
+                }
             }
         }
         
@@ -128,11 +142,13 @@ struct ContentView: View {
                         life.wrappedValue += 1
                         startGame = true
                         history.append("\(name) gained 1 life.")
+                        gameOver()
                     }
                     Button("-") {
                         life.wrappedValue -= 1
                         startGame = true
                         history.append("\(name) lost 1 life.")
+                        gameOver()
                     }
                 }
                 HStack(spacing: 12) {
@@ -142,6 +158,7 @@ struct ContentView: View {
                             life.wrappedValue += amount
                             startGame = true
                             history.append("\(name) gained \(amount) life.")
+                            gameOver()
                         }
                     }
                     Button("-\(lifeChangeValue())") {
@@ -150,6 +167,7 @@ struct ContentView: View {
                             life.wrappedValue -= amount
                             startGame = true
                             history.append("\(name) lost \(amount) life.")
+                            gameOver()
                         }
                     }
                 }
@@ -178,6 +196,26 @@ struct ContentView: View {
     func lifeChangeValue() -> Int {
         let num = Int(lifeText) ?? 0
         return num
+    }
+    
+    func gameOver() {
+        let count = players.filter{player in player.life > 0}.count
+        
+        if (startGame && players.count >= 2 && count <= 1) {
+            isGameOver = true
+        }
+    }
+    
+    func resetGame() {
+        players = [
+            Player(name: "Player 1", life: 20),
+            Player(name: "Player 2", life: 20),
+            Player(name: "Player 3", life: 20),
+            Player(name: "Player 4", life: 20)
+        ]
+        startGame = false
+        lifeText = "5"
+        history.removeAll()
     }
     
 }
