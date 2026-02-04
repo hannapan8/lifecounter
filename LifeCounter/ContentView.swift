@@ -28,16 +28,17 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             let isLandscape = geometry.size.width > geometry.size.height
-            let numRows = isLandscape ? 4 : 2
+            let numRow = isLandscape ? 4 : 2
             
             VStack(spacing: 16) {
                 HStack {
-                    Button("Add player") {
+                    Button("Add Player") {
                         let newPlayerCount = players.count + 1
                         players.append(Player(name: "Player \(newPlayerCount)", life: 20))
                     }
                     .disabled(startGame || players.count >= 8)
                 }
+                .buttonStyle(.borderedProminent)
                 
                 HStack (spacing: 12) {
                     Text("Change life by:")
@@ -55,18 +56,26 @@ struct ContentView: View {
                 ScrollView {
                     VStack(spacing: 14) {
                         ForEach(0..<players.count, id: \.self) { i in
-                            if (i % 2 == 0) {
-                                HStack(spacing: 12) {
-                                    if (i + 1 < players.count) {
-                                        playerViewPanel(name: players[i].name, life: $players[i].life)
-                                        
+                            if (i % numRow == 0) {
+                                HStack(spacing: 0) {
+                                    playerViewPanel(name: players[i].name, life: $players[i].life)
+                                        .frame(maxWidth: 300)
+
+                                    if (i + 1 < players.count && numRow >= 2) {
                                         playerViewPanel(name: players[i + 1].name, life: $players[i + 1].life)
-                                    } else {
-                                        HStack {
-                                            Spacer()
-                                            playerViewPanel(name: players[i].name, life: $players[i].life)
+                                            .frame(maxWidth: 300)
+                                    }
+
+                                    // horizontal view
+                                    if (numRow == 4){
+                                        if (i + 2 < players.count) {
+                                            playerViewPanel(name: players[i + 2].name, life: $players[i + 2].life)
                                                 .frame(maxWidth: 300)
-                                            Spacer()
+                                        }
+                                        
+                                        if (i + 3 < players.count) {
+                                            playerViewPanel(name: players[i + 3].name, life: $players[i + 3].life)
+                                                .frame(maxWidth: 300)
                                         }
                                     }
                                 }
@@ -76,38 +85,12 @@ struct ContentView: View {
                     .padding(.vertical, 6)
                 }
                 .padding(20)
+                .layoutPriority(1)
                 .background(Color(.systemBackground))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .layoutPriority(1)
-                
-//                Group {
-//                    if (isLandscape) {
-//                        // horizontal --> side by side player view
-//                        HStack(spacing: 12) {
-//                            ForEach(0..<players.count, id: \.self) { i in
-//                                playerViewPanel(name: players[i].name, life: $players[i].life)
-//                            }
-//                            
-//                            // playerViewPanel(name: "Player 1", life: $player1Life)
-//                            // playerViewPanel(name: "Player 2", life: $player2Life)
-//                        }
-//                    } else {
-//                        // vertical --> top down player view
-//                        VStack(spacing: 12) {
-//                            ForEach(0..<players.count, id: \.self) { i in
-//                                playerViewPanel(name: players[i].name, life: $players[i].life)
-//                            }
-//                            
-//                            // playerViewPanel(name: "Player 1", life: $player1Life)
-//                            // playerViewPanel(name: "Player 2", life: $player2Life)
-//                        }
-//                    }
-//                }
 
                 Text(winText())
                     .font(.headline)
-//                    .padding(.vertical, 12)
-//                    .padding(.bottom, 12)
                     .foregroundStyle(Color(.red))
 
                 
